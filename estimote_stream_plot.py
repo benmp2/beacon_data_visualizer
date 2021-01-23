@@ -12,22 +12,10 @@ from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
+import estimote_parser.parser as ep
+
 BEACON_MAC = 'E0:F0:23:8C:7B:F7'
 ADVERTISEMENT_SERVICE_DATA_UUID = '0000fe9a-0000-1000-8000-00805f9b34fb'
-
-def twos_comp(val, bits):
-    """compute the 2's complement of int value val"""
-    if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
-        val = val - (1 << bits)        # compute negative value
-    return val                         # return positive value as is
-
-def calc_g_units(acceleration):
-
-    acceleration = twos_comp(acceleration, 8)
-    acceleration = int(acceleration) * 2 / 127.0
-    acceleration = round(acceleration,2)
-
-    return acceleration
 
 def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementData):
     if device.address == BEACON_MAC:
@@ -43,9 +31,9 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
             # print(f'y:{calc_g_units(service_data[11])}',end='  ')
             # print(f'z:{calc_g_units(service_data[12])}')
             timestamp = dt.datetime.now().time()
-            x = calc_g_units(service_data[10])
-            y = calc_g_units(service_data[11])
-            z = calc_g_units(service_data[12])
+            x = ep.calc_g_units(service_data[10])
+            y = ep.calc_g_units(service_data[11])
+            z = ep.calc_g_units(service_data[12])
             push(timestamp,x,y,z)
 
 
@@ -57,7 +45,7 @@ def push(timestamp, x,y,z):
         z=[z],
         mhp=[0],
     )
-    source.stream(new_data,20)
+    source.stream(new_data,100)
 
 # @asyncio.coroutine
 async def update():
@@ -73,7 +61,7 @@ source = ColumnDataSource(dict(
 
 # p = figure(plot_height=500, tools="xpan,xwheel_zoom,xbox_zoom,reset", x_axis_type=None, y_axis_location="right")
 p = figure(
-        plot_width=800, plot_height=400,
+        plot_width=1400, plot_height=400,
         tools="xpan,xwheel_zoom,xbox_zoom,reset",
         x_axis_type='datetime',
         )
