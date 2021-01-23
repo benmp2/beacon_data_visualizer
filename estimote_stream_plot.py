@@ -32,10 +32,7 @@ def calc_g_units(acceleration):
 def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementData):
     if device.address == BEACON_MAC:
         # print(device.address, "RSSI:", device.rssi, advertisement_data)
-
         service_data = advertisement_data.service_data[ADVERTISEMENT_SERVICE_DATA_UUID]
-        # not_this= b'"\xbe\xd9\xccx;\x86\xde\x93\x01\xff\xff\xff\xff\x90 _\xf0%\x17'
-        # not_that= b'"\xbe\xd9\xccx;\x86\xde\x93\x01\xff\xff\xff\xff\x90 `\xf0%\x17'
 
         subframe_type = (service_data[9] & 0b00000011)
         if 0 == subframe_type:
@@ -64,21 +61,6 @@ def push(timestamp, x,y,z):
 
 # @asyncio.coroutine
 async def update():
-    # create = asyncio.create_subprocess_exec('tail', '-f', '-n' , '+1', sys.argv[-1],
-    #                                         stdout=asyncio.subprocess.PIPE)
-    # proc = yield from create
-    # while True:
-    #     # Read one line of output
-    #     data = yield from proc.stdout.readline()
-    #     line = data.decode('ascii').rstrip()
-    #     line = line.split(', ')
-    #     # line format:
-    #     # label,unix-timestamp,fair_price,spread
-    #     if line[0] == 'max_bid' or line[0] == 'min_ask':
-    #         timestamp = datetime.datetime.fromtimestamp(float(line[1]))
-    #         fair_price = float(line[2])
-    #         push(timestamp, fair_price)
-
     scanner = BleakScanner()
     scanner.register_detection_callback(accelerometer_callback)
     while True:
