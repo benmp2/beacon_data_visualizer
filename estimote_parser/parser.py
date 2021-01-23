@@ -1,4 +1,5 @@
 import math 
+import struct
 
 def twos_comp(val, bits):
     """compute the 2's complement of int value val"""
@@ -68,3 +69,18 @@ def calc_battery_level(byte_19):
     if batteryLevel == 0b11111111:
         batteryLevel = 'undefined'
     return batteryLevel
+
+def calc_atmospheric_pressure(pressure_bytes):
+    # atmospheric pressure in pascals (Pa)
+    print(pressure_bytes.hex('-'))
+
+    pressure = struct.unpack('<I', pressure_bytes)[0] / 256.0
+    return round(pressure,2)
+
+def get_error_codes(byte_15):
+    hasFirmwareError = ((byte_15 & 0b00000100) >> 2) == 1
+    hasClockError = ((byte_15 & 0b00001000) >> 3) == 1
+
+    return {'FirmwareError' : hasFirmwareError,
+            'ClockError' : hasClockError,
+            }

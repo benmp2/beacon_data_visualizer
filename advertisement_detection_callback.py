@@ -16,9 +16,11 @@ import estimote_parser.parser as ep
 
 logging.basicConfig()
 
-# BEACON_MAC = 'C5:00:36:52:DC:DF'
+# Each beacon has a unique MAC Address:
+# BEACON_MAC = 'C5:00:36:52:DC:DF' 
 BEACON_MAC = 'E0:F0:23:8C:7B:F7'
 
+#UUID doesnt change:
 ADVERTISEMENT_SERVICE_DATA_UUID = '0000fe9a-0000-1000-8000-00805f9b34fb'
 
 def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementData):
@@ -29,15 +31,28 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
         # not_this= b'"\xbe\xd9\xccx;\x86\xde\x93\x01\xff\xff\xff\xff\x90 _\xf0%\x17'
         # not_that= b'"\xbe\xd9\xccx;\x86\xde\x93\x01\xff\xff\xff\xff\x90 `\xf0%\x17'
 
+        protocolVersion = (service_data[0] & 0b11110000) >> 4
+
         subframe_type = (service_data[9] & 0b00000011)
         subframe_type = 'A' if subframe_type == 0 else 'B'
-        print(device.address, dt.datetime.now().time(), f'subframe type: {subframe_type}',)
+        now = dt.datetime.now().time()
+        print(device.address, now , f'protocol version: {protocolVersion}' ,f'subframe type: {subframe_type}',)
         
         if 'A' == subframe_type:
+            # print('x as hex: ',str(service_data[10]))
             print(f'acc x:{ep.calc_g_units(service_data[10])} g',end='  ')
             print(f'acc y:{ep.calc_g_units(service_data[11])} g',end='  ')
             print(f'acc z:{ep.calc_g_units(service_data[12])} g')
             # print(f'isMoving {(service_data[15] & 0b00000011) == 1}')
+            
+            pressure = ep.calc_atmospheric_pressure(service_data[16:])
+            print(f'pressure: {pressure/1e5} bar')
+            
+            errors = ep.get_error_codes(service_data[15])
+            firmware_error = errors['FirmwareError']
+            clock_error = errors['ClockError']
+            print(f'Firmware error: {firmware_error},   clock error: {clock_error}')
+
         elif 'B' == subframe_type:
             for axis,byte_index in zip(['x', 'y', 'z'],[10, 11, 12]):
                 data = ep.calc_magnetic_field(service_data[byte_index])

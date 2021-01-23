@@ -14,7 +14,11 @@ from bleak.backends.scanner import AdvertisementData
 
 import estimote_parser.parser as ep
 
+# Each beacon has a unique MAC Address:
+# BEACON_MAC = 'C5:00:36:52:DC:DF'
 BEACON_MAC = 'E0:F0:23:8C:7B:F7'
+
+#UUID doesnt change:
 ADVERTISEMENT_SERVICE_DATA_UUID = '0000fe9a-0000-1000-8000-00805f9b34fb'
 
 def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementData):
@@ -24,13 +28,7 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
 
         subframe_type = (service_data[9] & 0b00000011)
         if 0 == subframe_type:
-            # print(device.address,
-            #     dt.datetime.now().time(),
-            #     f'subframe A==0, B==1:{subframe_type}',)
-            # print(f'x:{calc_g_units(service_data[10])}',end='  ')
-            # print(f'y:{calc_g_units(service_data[11])}',end='  ')
-            # print(f'z:{calc_g_units(service_data[12])}')
-            timestamp = dt.datetime.now().time()
+            timestamp = dt.datetime.now()
             x = ep.calc_g_units(service_data[10])
             y = ep.calc_g_units(service_data[11])
             z = ep.calc_g_units(service_data[12])
