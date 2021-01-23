@@ -12,9 +12,6 @@ from bleak.backends.scanner import AdvertisementData
 import logging
 import datetime as dt
 
-# from System import Guid
-# from bleak.Devices.Bluetooth.Advertisement import BluetoothLEAdvertisementFilter, BluetoothLEAdvertisement
-
 logging.basicConfig()
 
 # BEACON_MAC = 'C5:00:36:52:DC:DF'
@@ -49,6 +46,9 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
             print(device.address,
                 dt.datetime.now().time(),
                 f'subframe A==0, B==1:{subframe_type}',)
+            print(f'x:{calc_g_units(service_data[10])}',end='  ')
+            print(f'y:{calc_g_units(service_data[11])}',end='  ')
+            print(f'z:{calc_g_units(service_data[12])}')
             # print(
             #     f'\tx:{calc_g_units(service_data[10])}\n',
             #     f'\ty:{calc_g_units(service_data[11])}\n',
