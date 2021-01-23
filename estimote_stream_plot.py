@@ -2,11 +2,13 @@ import sys
 import datetime as dt
 import asyncio
 import asyncio.subprocess
+import statistics
 
 from bokeh.driving import count
 from bokeh.models import ColumnDataSource,DatetimeTickFormatter
 from bokeh.client import push_session
 from bokeh.plotting import curdoc, figure
+from bokeh.layouts import row,column
 
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
@@ -21,6 +23,46 @@ BEACON_MAC = 'E0:F0:23:8C:7B:F7'
 #UUID doesnt change:
 ADVERTISEMENT_SERVICE_DATA_UUID = '0000fe9a-0000-1000-8000-00805f9b34fb'
 
+
+# class accelerometer_callback():
+buffer_size = 15
+mhp_buffer={'timestamp':[0]*buffer_size,
+            'x':[0]*buffer_size,
+            'y':[0]*buffer_size,
+            'z':[0]*buffer_size
+            }
+
+
+
+def push_to_mhp_buffer(timestamp,x,y,z):
+    global mhp_buffer
+    
+    mhp_buffer['timestamp'].append(timestamp)
+    mhp_buffer['x'].append(x)
+    mhp_buffer['y'].append(y)
+    mhp_buffer['z'].append(z)
+
+
+    for key in mhp_buffer:
+        mhp_buffer[key] = mhp_buffer[key][1:]
+
+    # #determine buffer size for mhp feature
+    # if len(mhp_buffer['timestamp']) > buffer_size:
+    #     for key in mhp_buffer:
+    #         mhp_buffer[key] = mhp_buffer[key][1:]
+
+def calculate_mhp_feature(timestamp,x,y,z):
+    global mhp_buffer
+
+    if len(mhp_buffer['timestamp']) == 15:
+        x_mhp = (x - statistics.mean(mhp_buffer['x']))**2
+        y_mhp = (y - statistics.mean(mhp_buffer['y']))**2
+        z_mhp = (z - statistics.mean(mhp_buffer['z']))**2
+    else:
+        x_mhp,y_mhp,z_mhp = 0,0,0
+
+    return statistics.sqrt(x_mhp+y_mhp+z_mhp)
+
 def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementData):
     if device.address == BEACON_MAC:
         # print(device.address, "RSSI:", device.rssi, advertisement_data)
@@ -32,16 +74,19 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
             x = ep.calc_g_units(service_data[10])
             y = ep.calc_g_units(service_data[11])
             z = ep.calc_g_units(service_data[12])
-            push(timestamp,x,y,z)
+            push_to_mhp_buffer(timestamp,x,y,z)
+            mhp = calculate_mhp_feature(timestamp,x,y,z)
+            # mhp=0
+            push(timestamp,x,y,z,mhp)
 
 
-def push(timestamp, x,y,z):
+def push(timestamp, x,y,z,mhp):
     new_data = dict(
         time=[timestamp],
         x=[x],
         y=[y],
         z=[z],
-        mhp=[0],
+        mhp=[mhp],
     )
     source.stream(new_data,100)
 
@@ -58,17 +103,25 @@ source = ColumnDataSource(dict(
     time=[], x=[], y=[], z=[], mhp=[]))
 
 # p = figure(plot_height=500, tools="xpan,xwheel_zoom,xbox_zoom,reset", x_axis_type=None, y_axis_location="right")
-p = figure(
+p1 = figure(
         plot_width=1400, plot_height=400,
         tools="xpan,xwheel_zoom,xbox_zoom,reset",
         x_axis_type='datetime',
         )
-p.xaxis.formatter=DatetimeTickFormatter()
-p.line(x='time', y='x', alpha=0.2, line_width=3, color='navy',legend_label= 'x-axis', source=source)
-p.line(x='time', y='y', alpha=0.2, line_width=3, color='orange',legend_label= 'y-axis', source=source)
-p.line(x='time', y='z', alpha=0.2, line_width=3, color='green',legend_label= 'z-axis', source=source)
+p1.xaxis.formatter=DatetimeTickFormatter()
+p1.line(x='time', y='x', alpha=0.2, line_width=3, color='navy',legend_label= 'x-axis', source=source)
+p1.line(x='time', y='y', alpha=0.2, line_width=3, color='orange',legend_label= 'y-axis', source=source)
+p1.line(x='time', y='z', alpha=0.2, line_width=3, color='green',legend_label= 'z-axis', source=source)
 
-# curdoc().add_periodic_callback(update, 50)
+p2 = figure(
+        plot_width=1400, plot_height=400,
+        tools="xpan,xwheel_zoom,xbox_zoom,reset",
+        x_axis_type='datetime',
+        )
+p2.xaxis.formatter=DatetimeTickFormatter()
+p2.line(x='time', y='mhp', alpha=0.2, line_width=3, color='navy',legend_label= 'mhp feature', source=source)
+
+p = column(p1, p2)
 
 # open a session to keep our local document in sync with server
 session = push_session(curdoc(), session_id='main')
