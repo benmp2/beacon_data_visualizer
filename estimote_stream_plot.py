@@ -25,7 +25,7 @@ ADVERTISEMENT_SERVICE_DATA_UUID = '0000fe9a-0000-1000-8000-00805f9b34fb'
 
 
 # class accelerometer_callback():
-buffer_size = 15
+buffer_size = 4
 mhp_buffer={'timestamp':[0]*buffer_size,
             'x':[0]*buffer_size,
             'y':[0]*buffer_size,
@@ -54,7 +54,7 @@ def push_to_mhp_buffer(timestamp,x,y,z):
 def calculate_mhp_feature(timestamp,x,y,z):
     global mhp_buffer
 
-    if len(mhp_buffer['timestamp']) == 15:
+    if len(mhp_buffer['timestamp']) == buffer_size:
         x_mhp = (x - statistics.mean(mhp_buffer['x']))**2
         y_mhp = (y - statistics.mean(mhp_buffer['y']))**2
         z_mhp = (z - statistics.mean(mhp_buffer['z']))**2
