@@ -36,13 +36,14 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
         subframe_type = (service_data[9] & 0b00000011)
         subframe_type = 'A' if subframe_type == 0 else 'B'
         now = dt.datetime.now().time()
-        print(
-            device.address, 
-            now, 
-            f'protocol version: {protocolVersion}',
-            f'subframe type: {subframe_type}',
-            f'rssi={device.rssi}'
-            )
+        if subframe_type == 'A':
+            print(
+                device.address, 
+                now, 
+                f'protocol version: {protocolVersion}',
+                f'subframe type: {subframe_type}',
+                f'rssi={device.rssi}'
+                )
         
         # if 'A' == subframe_type:
         #     # print('x as hex: ',str(service_data[10]))
@@ -83,7 +84,7 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
 async def run():
     # https://github.com/hbldh/bleak/issues/230#issuecomment-652822031
     # scanner = BleakScanner(AdvertisementFilter=)
-    scanner = BleakScanner()
+    scanner = BleakScanner(filter={'DuplicateData':False})
     scanner.register_detection_callback(accelerometer_callback)
     while True:
         await scanner.start()

@@ -10,6 +10,7 @@ from bokeh.models import ColumnDataSource,DatetimeTickFormatter
 from bokeh.client import push_session
 from bokeh.plotting import curdoc, figure
 from bokeh.layouts import row,column
+from bokeh.models import HoverTool
 
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
@@ -17,9 +18,12 @@ from bleak.backends.scanner import AdvertisementData
 
 import estimote_parser.parser as ep
 
-import ctypes
-screen_width = ctypes.windll.user32.GetSystemMetrics(0)
-screen_height = ctypes.windll.user32.GetSystemMetrics(1)
+# import ctypes
+# screen_width = ctypes.windll.user32.GetSystemMetrics(0)
+# screen_height = ctypes.windll.user32.GetSystemMetrics(1)
+screen_height = 600
+screen_width = 1200
+
 MAX_WIDTH = math.floor(96 * screen_width / 100)  # buffer to adjust
 MAX_HEIGHT = math.floor(85 * screen_height / 100)
 HALF_MAX_HEIGHT = math.floor(MAX_HEIGHT / 2)
@@ -100,7 +104,7 @@ def push(timestamp, x,y,z,mhp):
 
 # @asyncio.coroutine
 async def update():
-    scanner = BleakScanner()
+    scanner = BleakScanner(filter={'DuplicateData':False})
     scanner.register_detection_callback(accelerometer_callback)
     while True:
         await scanner.start()
@@ -109,6 +113,7 @@ async def update():
 
 source = ColumnDataSource(dict(
     time=[], x=[], y=[], z=[], mhp=[]))
+
 
 # p = figure(plot_height=500, tools="xpan,xwheel_zoom,xbox_zoom,reset", x_axis_type=None, y_axis_location="right")
 p1 = figure(
@@ -121,14 +126,19 @@ p1.line(x='time', y='x', alpha=0.2, line_width=3, color='navy',legend_label= 'x-
 p1.line(x='time', y='y', alpha=0.2, line_width=3, color='orange',legend_label= 'y-axis', source=source)
 p1.line(x='time', y='z', alpha=0.2, line_width=3, color='green',legend_label= 'z-axis', source=source)
 
+
+hover = HoverTool(tooltips=[('date', '@x{%H:%M:%S}')],
+          formatters={'@x': 'datetime'})
+
 p2 = figure(
         plot_width=MAX_WIDTH, plot_height=HALF_MAX_HEIGHT,
         tools="xpan,xwheel_zoom,xbox_zoom,reset",
-        x_axis_type='datetime',
+        x_axis_type='datetime'
         )
 p2.xaxis.formatter=DatetimeTickFormatter()
 p2.line(x='time', y='mhp', alpha=0.2, line_width=3, color='navy',legend_label= 'mhp feature', source=source)
-
+p2.circle(x='time', y='mhp', fill_color="white",size=8, source=source)
+p2.add_tools(hover)
 p = column(p1, p2)
 
 # open a session to keep our local document in sync with server
