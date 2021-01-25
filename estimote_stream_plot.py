@@ -2,6 +2,7 @@ import sys
 import datetime as dt
 import asyncio
 import asyncio.subprocess
+import math
 import statistics
 
 from bokeh.driving import count
@@ -16,6 +17,13 @@ from bleak.backends.scanner import AdvertisementData
 
 import estimote_parser.parser as ep
 
+import ctypes
+screen_width = ctypes.windll.user32.GetSystemMetrics(0)
+screen_height = ctypes.windll.user32.GetSystemMetrics(1)
+MAX_WIDTH = math.floor(96 * screen_width / 100)  # buffer to adjust
+MAX_HEIGHT = math.floor(85 * screen_height / 100)
+HALF_MAX_HEIGHT = math.floor(MAX_HEIGHT / 2)
+
 # Each beacon has a unique MAC Address:
 # BEACON_MAC = 'C5:00:36:52:DC:DF'
 BEACON_MAC = 'E0:F0:23:8C:7B:F7'
@@ -25,7 +33,7 @@ ADVERTISEMENT_SERVICE_DATA_UUID = '0000fe9a-0000-1000-8000-00805f9b34fb'
 
 
 # class accelerometer_callback():
-buffer_size = 4
+buffer_size = 8
 mhp_buffer={'timestamp':[0]*buffer_size,
             'x':[0]*buffer_size,
             'y':[0]*buffer_size,
@@ -104,7 +112,7 @@ source = ColumnDataSource(dict(
 
 # p = figure(plot_height=500, tools="xpan,xwheel_zoom,xbox_zoom,reset", x_axis_type=None, y_axis_location="right")
 p1 = figure(
-        plot_width=1400, plot_height=400,
+        plot_width=MAX_WIDTH, plot_height=400,
         tools="xpan,xwheel_zoom,xbox_zoom,reset",
         x_axis_type='datetime',
         )
@@ -114,7 +122,7 @@ p1.line(x='time', y='y', alpha=0.2, line_width=3, color='orange',legend_label= '
 p1.line(x='time', y='z', alpha=0.2, line_width=3, color='green',legend_label= 'z-axis', source=source)
 
 p2 = figure(
-        plot_width=1400, plot_height=400,
+        plot_width=MAX_WIDTH, plot_height=HALF_MAX_HEIGHT,
         tools="xpan,xwheel_zoom,xbox_zoom,reset",
         x_axis_type='datetime',
         )

@@ -36,43 +36,49 @@ def accelerometer_callback(device: BLEDevice, advertisement_data: AdvertisementD
         subframe_type = (service_data[9] & 0b00000011)
         subframe_type = 'A' if subframe_type == 0 else 'B'
         now = dt.datetime.now().time()
-        print(device.address, now , f'protocol version: {protocolVersion}' ,f'subframe type: {subframe_type}',)
+        print(
+            device.address, 
+            now, 
+            f'protocol version: {protocolVersion}',
+            f'subframe type: {subframe_type}',
+            f'rssi={device.rssi}'
+            )
         
-        if 'A' == subframe_type:
-            # print('x as hex: ',str(service_data[10]))
-            print(f'acc x:{ep.calc_g_units(service_data[10])} g',end='  ')
-            print(f'acc y:{ep.calc_g_units(service_data[11])} g',end='  ')
-            print(f'acc z:{ep.calc_g_units(service_data[12])} g')
-            # print(f'isMoving {(service_data[15] & 0b00000011) == 1}')
+        # if 'A' == subframe_type:
+        #     # print('x as hex: ',str(service_data[10]))
+        #     print(f'acc x:{ep.calc_g_units(service_data[10])} g',end='  ')
+        #     print(f'acc y:{ep.calc_g_units(service_data[11])} g',end='  ')
+        #     print(f'acc z:{ep.calc_g_units(service_data[12])} g')
+        #     # print(f'isMoving {(service_data[15] & 0b00000011) == 1}')
             
-            pressure = ep.calc_atmospheric_pressure(service_data[16:])
-            print(f'pressure: {pressure/1e5} bar')
+        #     pressure = ep.calc_atmospheric_pressure(service_data[16:])
+        #     print(f'pressure: {pressure/1e5} bar')
             
-            errors = ep.get_error_codes(service_data[15])
-            firmware_error = errors['FirmwareError']
-            clock_error = errors['ClockError']
-            print(f'Firmware error: {firmware_error},   clock error: {clock_error}')
+        #     errors = ep.get_error_codes(service_data[15])
+        #     firmware_error = errors['FirmwareError']
+        #     clock_error = errors['ClockError']
+        #     print(f'Firmware error: {firmware_error},   clock error: {clock_error}')
 
-        elif 'B' == subframe_type:
-            for axis,byte_index in zip(['x', 'y', 'z'],[10, 11, 12]):
-                data = ep.calc_magnetic_field(service_data[byte_index])
-                print(f'magn {axis}:{data}',end='  ')
-            print()
+        # elif 'B' == subframe_type:
+        #     for axis,byte_index in zip(['x', 'y', 'z'],[10, 11, 12]):
+        #         data = ep.calc_magnetic_field(service_data[byte_index])
+        #         print(f'magn {axis}:{data}',end='  ')
+        #     print()
             
-            light_in_lux = ep.calc_ambient_light(service_data[13])
-            print(f'ambient light: {light_in_lux} lx')
+        #     light_in_lux = ep.calc_ambient_light(service_data[13])
+        #     print(f'ambient light: {light_in_lux} lx')
             
-            uptime = ep.calc_beacon_uptime(service_data[14],service_data[15])
-            print(f'uptime: {uptime}')
+        #     uptime = ep.calc_beacon_uptime(service_data[14],service_data[15])
+        #     print(f'uptime: {uptime}')
             
-            temperature = ep.calc_ambient_temperature(service_data[15],service_data[16],service_data[17])
-            print(f'temperature: {temperature}')
+        #     temperature = ep.calc_ambient_temperature(service_data[15],service_data[16],service_data[17])
+        #     print(f'temperature: {temperature}')
 
-            battery_voltage = ep.calc_battery_voltage(service_data[17],service_data[18])
-            print(f'battery_voltage: {battery_voltage}')
+        #     battery_voltage = ep.calc_battery_voltage(service_data[17],service_data[18])
+        #     print(f'battery_voltage: {battery_voltage}')
 
-            battery_level = ep.calc_battery_level(service_data[19])
-            print(f'battery_level: {battery_level}')
+        #     battery_level = ep.calc_battery_level(service_data[19])
+        #     print(f'battery_level: {battery_level}')
 
 async def run():
     # https://github.com/hbldh/bleak/issues/230#issuecomment-652822031
