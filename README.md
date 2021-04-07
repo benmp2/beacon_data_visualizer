@@ -5,8 +5,8 @@
 2. cd beacon_data_visualizer
 3. pip install --upgrade pip
 4. pip install virtualenv
-5. python -m venv .\venv
-6. venv\Scripts\activate (on Windows)
+5. python -m venv venv
+6. source venv/bin/activate
 7. pip install -r requirements.txt
 
 ## Usage:
