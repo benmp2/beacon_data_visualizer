@@ -8,6 +8,7 @@
 5. python -m venv venv
 6. source venv/bin/activate
 7. pip install -r requirements.txt
+(step 7 might fail, make sure you have the most recent mono installed: https://www.mono-project.com/download/stable/)
 
 ## Usage:
 1. Turn on bluetooth on laptop.
