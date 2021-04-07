@@ -1,6 +1,6 @@
 # beacon_data_visualizer
 
-## Installation: (for Python 3.8.6)
+## Installation: (for Python 3.8.5)
 1. git clone https://github.com/benmp2/beacon_data_visualizer
 2. cd beacon_data_visualizer
 3. pip install --upgrade pip
