@@ -4,7 +4,7 @@ For capturing the accelerometer data packets I used [bleak](https://bleak.readth
 For visualizing the data strem I went with [bokeh](https://bokeh.org/).
 It is possible to run the code on Windows 10 however I found that running it on linux (ubuntu in a VM) gave better results, i.e. more data packets got captured.
 This is most likely down to how the Bluetooth LE scan interval and time is configured differently on the two different operating systems.
-The beacon sends accelerometer data every 200ms.
+The beacon sends accelerometer data every 200ms. Docker containerization of the project was not an option as the bluetooth hardware is not available from inside of a container.
 
 ## Installation: (for Python 3.8.5)
 1. git clone https://github.com/benmp2/beacon_data_visualizer
