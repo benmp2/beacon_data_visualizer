@@ -15,3 +15,6 @@
 2. Have an estimote beacon nearby.
 3. run 'bokeh serve'
 4. run 'python estimote_stream_plot.py' 
+
+## Tutorial:
+![](./static_files/tutorial_small.gif)
